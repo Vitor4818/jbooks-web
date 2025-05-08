@@ -2,12 +2,27 @@
 import React, { useState } from 'react';
 import { CardLivro } from '../components/CardLivros/CardLivro';
 
+// Interface para os livros que você está usando na aplicação
 interface Livro {
   titulo: string;
   capa: string;
   autor: string;
   desc: string;
-  categoria: string
+  categoria: string;
+}
+
+// Interface que representa a estrutura dos dados recebidos da API
+interface GoogleBook {
+  volumeInfo: {
+    title: string;
+    authors: string[];
+    description: string;
+    imageLinks?: {
+      thumbnail: string;
+    };
+    categories?: string[];
+    language?: string;
+  };
 }
 
 export default function AdicionarLivro() {
@@ -17,20 +32,20 @@ export default function AdicionarLivro() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNome(e.target.value);
   };
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     try {
       const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${nome}`);
       const data = await response.json();
-  
+
       if (response.ok && data.items && data.items.length > 0) {
         const livrosFiltrados = data.items
-          .filter((item: any) => {
+          .filter((item: GoogleBook) => {
             const info = item.volumeInfo;
             const idioma = info.language?.toLowerCase();
-  
+
             return (
               (idioma === 'pt' || idioma === 'pt-br') &&
               info.title &&
@@ -40,17 +55,17 @@ export default function AdicionarLivro() {
               info.imageLinks?.thumbnail
             );
           })
-          .map((item: any) => {
+          .map((item: GoogleBook) => {
             const info = item.volumeInfo;
             return {
               titulo: info.title,
-              capa: info.imageLinks.thumbnail,
+              capa: info.imageLinks!.thumbnail,
               autor: info.authors.join(', '),
               desc: info.description,
-              categoria: info.categories?.[0]      
-             };
+              categoria: info.categories?.[0] || 'Sem categoria',
+            };
           });
-  
+
         if (livrosFiltrados.length > 0) {
           setLivros(livrosFiltrados);
         } else {
@@ -66,12 +81,8 @@ export default function AdicionarLivro() {
     }
   };
 
-
- 
-  
-
   return (
-    <div className="flex flex-col justify-center mt-10 p-6 bg-white">
+    <div className="flex flex-col items-center min-h-214 bg-gradient-to-br from-blue-50 to-blue-100 p-6">
       <h1 className="text-2xl font-bold mb-4">Buscar Livros</h1>
       <form onSubmit={handleSubmit} className="space-y-4 flex flex-col">
         <input
@@ -98,6 +109,10 @@ export default function AdicionarLivro() {
                   autor={livro.autor}
                   category={livro.categoria}
                   desc={livro.desc}
+                  handleAdd={() => {
+                    console.log('Livro a ser adicionado:', livro);
+                    // Aqui você pode implementar a lógica de adicionar livro ao sistema
+                  }}
                 />
               </li>
             ))}

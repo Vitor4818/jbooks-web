@@ -1,8 +1,9 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { CardLivro } from '../components/CardLivros/CardLivro';
 
-// Interface para os livros que você está usando na aplicação
+// Interface para os livros
 interface Livro {
   titulo: string;
   capa: string;
@@ -11,7 +12,7 @@ interface Livro {
   categoria: string;
 }
 
-// Interface que representa a estrutura dos dados recebidos da API
+// Interface da estrutura da API
 interface GoogleBook {
   volumeInfo: {
     title: string;
@@ -28,6 +29,15 @@ interface GoogleBook {
 export default function AdicionarLivro() {
   const [nome, setNome] = useState('');
   const [livros, setLivros] = useState<Livro[]>([]);
+  const router = useRouter();
+
+  // Verifica se o token existe
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/login'); // redireciona para login
+    }
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNome(e.target.value);
@@ -82,43 +92,47 @@ export default function AdicionarLivro() {
   };
 
   return (
-    <div className="flex flex-col items-center min-h-214 bg-gradient-to-br from-blue-50 to-blue-100 p-6">
-      <h1 className="text-2xl font-bold mb-4">Buscar Livros</h1>
-      <form onSubmit={handleSubmit} className="space-y-4 flex flex-col">
-        <input
-          name="nome"
-          value={nome}
-          onChange={handleChange}
-          placeholder="Nome do livro"
-          className="border p-2 rounded w-56"
-        />
-        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-56 cursor-pointer">
-          Buscar
-        </button>
-      </form>
+<div className="flex flex-col items-center min-h-215 bg-gradient-to-br from-[#2c3e50] to-[#34495e] px-4 py-10">
+  <h1 className="text-3xl font-bold mt-10 mb-6 text-white">Buscar Livros</h1>
 
-      {livros.length > 0 && (
-        <div className="mt-6">
-          <h2 className="text-lg font-semibold mb-2">Resultados:</h2>
-          <ul className="flex flex-col gap-5 list-none">
-            {livros.map((livro, index) => (
-              <li key={index}>
-                <CardLivro
-                  name={livro.titulo}
-                  capa={livro.capa}
-                  autor={livro.autor}
-                  category={livro.categoria}
-                  desc={livro.desc}
-                  handleAdd={() => {
-                    console.log('Livro a ser adicionado:', livro);
-                    // Aqui você pode implementar a lógica de adicionar livro ao sistema
-                  }}
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+  <form onSubmit={handleSubmit} className="space-y-4 flex flex-col w-full max-w-md">
+    <input
+      name="nome"
+      value={nome}
+      onChange={handleChange}
+      placeholder="Nome do livro"
+      className="border border-gray-300 p-3 rounded-md text-[#1f2937] bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+    <button
+      type="submit"
+      className="bg-blue-600 text-white px-4 py-3 rounded-md font-semibold hover:bg-blue-700 transition duration-200"
+    >
+      Buscar
+    </button>
+  </form>
+
+  {livros.length > 0 && (
+    <div className="mt-10 w-full max-w-3xl">
+      <h2 className="text-xl font-semibold mb-4 text-white">Resultados:</h2>
+      <ul className="flex flex-col gap-5 list-none">
+        {livros.map((livro, index) => (
+          <li key={index}>
+            <CardLivro
+              name={livro.titulo}
+              capa={livro.capa}
+              autor={livro.autor}
+              category={livro.categoria}
+              desc={livro.desc}
+              handleAdd={() => {
+                console.log('Livro a ser adicionado:', livro);
+                // lógica de adicionar livro
+              }}
+            />
+          </li>
+        ))}
+      </ul>
     </div>
+  )}
+</div>
   );
 }
